@@ -5,11 +5,18 @@ import (
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/ryanbaer/minesweeper/levels"
 )
+
+//
+// var (
+// 	ms *Minesweeper
+// )
 
 func main() {
 	var (
-		width, height, mines int64
+		width, height, mines int
 		err                  error
 	)
 
@@ -18,27 +25,35 @@ func main() {
 		os.Exit(1)
 	}
 
-	width, err = strconv.ParseInt(os.Args[1], 10, 64)
+	w, err := strconv.ParseInt(os.Args[1], 10, 64)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	height, err = strconv.ParseInt(os.Args[2], 10, 64)
+	h, err := strconv.ParseInt(os.Args[2], 10, 64)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	mines, err = strconv.ParseInt(os.Args[3], 10, 64)
+	m, err := strconv.ParseInt(os.Args[3], 10, 64)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	m, err := NewMinesweeper(int(width), int(height), int(mines))
-	if err != nil {
-		log.Fatal(err)
-	}
+	width = int(w)
+	height = int(h)
+	mines = int(m)
 
-	if err := m.Generate(); err != nil {
-		log.Fatal(err)
-	}
+	levels.StartGame(&levels.Config{
+		Width:  width,
+		Height: height,
+		Mines:  mines,
+		TitleContent: []string{
+			"Minesweeper",
+			"Press [enter] to start",
+		},
+		WinContent:  []string{"Congratulations!!", "You did it!"},
+		LoseContent: []string{"You exploded!"},
+		QuitMessage: "Press Ctrl + C to quit",
+	})
 }

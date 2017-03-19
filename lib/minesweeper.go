@@ -1,4 +1,4 @@
-package main
+package lib
 
 import (
 	"errors"
@@ -23,9 +23,21 @@ const minWidth = 2
 const minHeight = 2
 
 const Mine = MSValue(-1)
+const Empty = MSValue(0)
 
 func (m MSValue) IsMine() bool {
 	return m == Mine
+}
+
+func (m MSValue) Display() rune {
+	switch m {
+	case Mine:
+		return '*'
+	case Empty:
+		return ' '
+	default:
+		return rune(fmt.Sprintf("%d", m)[0])
+	}
 }
 
 var (
@@ -38,6 +50,7 @@ type Minesweeper struct {
 	Height int
 	Mines  int
 	Grid   [][]MSValue
+	Field  [][]*Location
 }
 
 func NewMinesweeper(width, height, mines int) (*Minesweeper, error) {
@@ -54,11 +67,26 @@ func NewMinesweeper(width, height, mines int) (*Minesweeper, error) {
 		Width:  width,
 		Height: height,
 		Mines:  mines,
+		// ActiveMines: make([]*Coordinate, mines),
+	}
+
+	m.Field = make([][]*Location, height)
+	for i := 0; i < height; i++ {
+		m.Field[i] = make([]*Location, width)
+		for j := 0; j < width; j++ {
+			m.Field[i][j] = &Location{
+				Coordinate: Coordinate{j, i},
+			}
+		}
 	}
 
 	m.Grid = make([][]MSValue, height)
 	for i := 0; i < height; i++ {
 		m.Grid[i] = make([]MSValue, width)
+	}
+
+	if err := m.Generate(); err != nil {
+		return nil, err
 	}
 
 	return m, nil
@@ -73,7 +101,7 @@ func (m *Minesweeper) Generate() error {
 		return err
 	}
 
-	m.Print()
+	// m.Print()
 
 	return nil
 }
@@ -93,14 +121,14 @@ func (m *Minesweeper) Print() {
 }
 
 func (m *Minesweeper) ValueAt(c *Coordinate) (MSValue, error) {
-	if !m.Bounds(c) {
+	if !m.InBounds(c) {
 		return 0, ErrOutOfBounds
 	}
 	return m.Grid[c.Y][c.X], nil
 }
 
 func (m *Minesweeper) SetValue(c *Coordinate, value MSValue) error {
-	if !m.Bounds(c) {
+	if !m.InBounds(c) {
 		return ErrOutOfBounds
 	}
 
@@ -109,8 +137,8 @@ func (m *Minesweeper) SetValue(c *Coordinate, value MSValue) error {
 }
 
 func (m *Minesweeper) placeMines() error {
-	ct := m.Mines
-	for ct > 0 {
+	// ct := m.Mines
+	for i := 0; i < m.Mines; i++ {
 		row := rand.Intn(len(m.Grid))
 		col := rand.Intn(len(m.Grid[0]))
 		c := &Coordinate{X: col, Y: row}
@@ -127,8 +155,12 @@ func (m *Minesweeper) placeMines() error {
 		if err := m.SetValue(c, Mine); err != nil {
 			return err
 		}
-		ct--
+		m.ActiveMines[i] = c
 	}
+	// for ct > 0 {
+	//
+	// 	ct--
+	// }
 
 	return nil
 }
@@ -171,7 +203,20 @@ func (m *Minesweeper) markMines() error {
 	return nil
 }
 
+// Detections returns
+func (m *Minesweeper) Detections() []*Coordinate {
+	// for _, m := range m.ActiveMines {
+	//
+	// }
+	// TODO
+	return nil
+}
+
+func (m *Minesweeper) Size() (int, int) {
+	return m.Width, m.Height
+}
+
 // Bounds is used to determine if a given coordinate is in bounds of the grid
-func (m *Minesweeper) Bounds(c *Coordinate) bool {
+func (m *Minesweeper) InBounds(c *Coordinate) bool {
 	return !(c.X < 0 || c.Y < 0 || c.X > m.Width-1 || c.Y > m.Height-1)
 }
