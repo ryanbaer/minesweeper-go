@@ -2,6 +2,7 @@ package levels
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	tl "github.com/JoelOtter/termloop"
@@ -31,6 +32,7 @@ func (t *mainLevel) Tick(event tl.Event) {
 	if event.Type == tl.EventMouse && event.Key == tl.MouseRelease {
 		exploded := t.Board.Click(event.MouseX, event.MouseY)
 		if exploded {
+			fmt.Println("Exploded!")
 		}
 
 	}

@@ -55,35 +55,42 @@ func NewBoard(width, height, mines int) (*Board, error) {
 // }
 
 func (b *Board) Click(tx, ty int) bool {
-	var exploded bool
+	var (
+		exploded bool
+	)
 	if tx >= b.x && tx < b.x+b.width && ty >= b.y && ty < b.y+b.height {
 		x, y := tx-b.x, ty-b.y
 
-		val, err := b.ms.ValueAt(&lib.Coordinate{x, y})
+		// val, err := b.ms.ValueAt(&lib.Coordinate{x, y})
+		// if err != nil {
+		// 	log.Print("Error retrieving value", err)
+		// 	return exploded
+		// }
+
+		// if val.IsMine() {
+		// 	exploded = true
+		// 	b.Cells[y][x].SetColor(tl.ColorRed)
+		// 	// point := lib.Coordinate{X: x, Y: y}
+		// 	// coords := point.RealPerimeter()
+		// 	// for _, c := range coords {
+		// 	// 	if b.ms.InBounds(c) {
+		// 	// 		b.Cells[c.Y][c.X].SetColor(tl.ColorRed)
+		// 	// 	}
+		// 	// }
+		// }
+
+		value, err := b.ms.Visit(&lib.Coordinate{x, y})
 		if err != nil {
-			log.Print("Error retrieving value", err)
-			return exploded
+			log.Print(err)
+			return false
 		}
 
-		if val.IsMine() {
-			exploded = true
-			b.Cells[y][x].SetColor(tl.ColorRed)
-			// point := lib.Coordinate{X: x, Y: y}
-			// coords := point.RealPerimeter()
-			// for _, c := range coords {
-			// 	if b.ms.InBounds(c) {
-			// 		b.Cells[c.Y][c.X].SetColor(tl.ColorRed)
-			// 	}
-			// }
-		}
+		exploded = value.IsMine()
 
-		detections := b.ms.Detections()
-		for _, d := range detections {
-			b.Cells[d.Y][d.X].SetContent('✓')
-		}
-
-		b.Cells[y][x].SetContent(val.Display())
+		// b.Cells[y][x].SetContent(val.Display())
 	}
+	b.ms.Detections()
+	b.ms.MarkMines()
 
 	return exploded
 }
@@ -96,11 +103,26 @@ func (b *Board) Draw(s *tl.Screen) {
 
 	for i := 0; i < h1; i++ {
 		for j := 0; j < w1; j++ {
+			var value rune
 			x := b.x + j
 			y := b.y + i
-			cell := b.Cells[i][j]
-			cell.SetPosition(x, y)
-			cell.Draw(s)
+
+			loc, err := b.ms.Location(&lib.Coordinate{j, i})
+			if err != nil {
+				log.Print(err)
+				continue
+			}
+
+			if loc.Visited() {
+				value = loc.Value().Display()
+			} else {
+				value = '░'
+			}
+
+			s.RenderCell(x, y, &tl.Cell{Bg: tl.ColorWhite, Fg: tl.ColorBlack, Ch: value})
+			// cell := b.Cells[i][j]
+			// cell.SetPosition(x, y)
+			// cell.Draw(s)
 		}
 	}
 

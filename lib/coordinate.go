@@ -9,15 +9,6 @@ type Coordinate struct {
 	Y int
 }
 
-type Location struct {
-	Coordinate
-	Visited bool
-}
-
-func (l *Location) Visit() {
-	l.Visited = true
-}
-
 func (c *Coordinate) Add(c1 *Coordinate) *Coordinate {
 	return &Coordinate{
 		X: c.X + c1.X,

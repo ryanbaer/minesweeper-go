@@ -22,6 +22,7 @@ type MSValue int
 const minWidth = 2
 const minHeight = 2
 
+const Safe = MSValue(-2)
 const Mine = MSValue(-1)
 const Empty = MSValue(0)
 
@@ -35,6 +36,8 @@ func (m MSValue) Display() rune {
 		return '*'
 	case Empty:
 		return ' '
+	case Safe:
+		return '✓'
 	default:
 		return rune(fmt.Sprintf("%d", m)[0])
 	}
@@ -46,11 +49,13 @@ var (
 )
 
 type Minesweeper struct {
-	Width  int
-	Height int
-	Mines  int
-	Grid   [][]MSValue
-	Field  [][]*Location
+	Width     int
+	Height    int
+	Mines     int
+	Remaining int
+	// Grid        [][]MSValue
+	Field       [][]*Location
+	ActiveMines []*Location
 }
 
 func NewMinesweeper(width, height, mines int) (*Minesweeper, error) {
@@ -64,10 +69,11 @@ func NewMinesweeper(width, height, mines int) (*Minesweeper, error) {
 	}
 
 	m := &Minesweeper{
-		Width:  width,
-		Height: height,
-		Mines:  mines,
-		// ActiveMines: make([]*Coordinate, mines),
+		Width:       width,
+		Height:      height,
+		Mines:       mines,
+		Remaining:   mines,
+		ActiveMines: make([]*Location, 0),
 	}
 
 	m.Field = make([][]*Location, height)
@@ -75,15 +81,15 @@ func NewMinesweeper(width, height, mines int) (*Minesweeper, error) {
 		m.Field[i] = make([]*Location, width)
 		for j := 0; j < width; j++ {
 			m.Field[i][j] = &Location{
-				Coordinate: Coordinate{j, i},
+				Coordinate: &Coordinate{j, i},
 			}
 		}
 	}
 
-	m.Grid = make([][]MSValue, height)
-	for i := 0; i < height; i++ {
-		m.Grid[i] = make([]MSValue, width)
-	}
+	// m.Grid = make([][]MSValue, height)
+	// for i := 0; i < height; i++ {
+	// 	m.Grid[i] = make([]MSValue, width)
+	// }
 
 	if err := m.Generate(); err != nil {
 		return nil, err
@@ -101,66 +107,92 @@ func (m *Minesweeper) Generate() error {
 		return err
 	}
 
-	// m.Print()
-
 	return nil
 }
 
 func (m *Minesweeper) Print() {
-	for i := 0; i < len(m.Grid); i++ {
-		for j := 0; j < len(m.Grid[0]); j++ {
-			val := m.Grid[i][j]
-			if val == -1 {
+	for i := 0; i < m.Height; i++ {
+		for j := 0; j < m.Width; j++ {
+			value := m.Field[i][j].Value()
+			if value.IsMine() {
 				fmt.Printf("*\t")
 			} else {
-				fmt.Printf("%d\t", m.Grid[i][j])
+				fmt.Printf("%d\t", value)
 			}
 		}
 		fmt.Printf("\n\n\n")
 	}
 }
 
+func (m *Minesweeper) Location(c *Coordinate) (*Location, error) {
+	if !m.InBounds(c) {
+		return nil, ErrOutOfBounds
+	}
+
+	return m.Field[c.Y][c.X], nil
+}
+
+func (m *Minesweeper) Perimeter(l *Location) []*Location {
+	locations := make([]*Location, 0)
+
+	for _, c := range l.RealPerimeter() {
+		l1, err := m.Location(c)
+		if err == nil {
+			locations = append(locations, l1)
+		}
+	}
+
+	return locations
+
+}
+
+func (m *Minesweeper) Visit(c *Coordinate) (MSValue, error) {
+	l, err := m.Location(c)
+	if err != nil {
+		return 0, err
+	}
+
+	// m.detections()
+
+	return l.Visit(), nil
+}
+
 func (m *Minesweeper) ValueAt(c *Coordinate) (MSValue, error) {
-	if !m.InBounds(c) {
-		return 0, ErrOutOfBounds
-	}
-	return m.Grid[c.Y][c.X], nil
-}
-
-func (m *Minesweeper) SetValue(c *Coordinate, value MSValue) error {
-	if !m.InBounds(c) {
-		return ErrOutOfBounds
+	l, err := m.Location(c)
+	if err != nil {
+		return 0, err
 	}
 
-	m.Grid[c.Y][c.X] = value
-	return nil
+	return l.Value(), nil
 }
+
+// func (m *Minesweeper) SetValue(c *Coordinate, value MSValue) error {
+// 	if !m.InBounds(c) {
+// 		return ErrOutOfBounds
+// 	}
+//
+// 	m.Grid[c.Y][c.X] = value
+// 	return nil
+// }
 
 func (m *Minesweeper) placeMines() error {
 	// ct := m.Mines
 	for i := 0; i < m.Mines; i++ {
-		row := rand.Intn(len(m.Grid))
-		col := rand.Intn(len(m.Grid[0]))
+		row := rand.Intn(m.Height)
+		col := rand.Intn(m.Width)
 		c := &Coordinate{X: col, Y: row}
 
-		val, err := m.ValueAt(c)
+		l, err := m.Location(c)
 		if err != nil {
 			return err
 		}
 
-		if val == Mine {
+		if l.Value().IsMine() {
 			continue
 		}
-
-		if err := m.SetValue(c, Mine); err != nil {
-			return err
-		}
-		m.ActiveMines[i] = c
+		l.setValue(Mine)
+		m.ActiveMines = append(m.ActiveMines, l)
 	}
-	// for ct > 0 {
-	//
-	// 	ct--
-	// }
 
 	return nil
 }
@@ -169,33 +201,18 @@ func (m *Minesweeper) markMines() error {
 	for i := 0; i < m.Height; i++ {
 		for j := 0; j < m.Width; j++ {
 			count := MSValue(0)
-			c := &Coordinate{X: j, Y: i}
-
-			val, err := m.ValueAt(c)
+			l, err := m.Location(&Coordinate{X: j, Y: i})
 			if err != nil {
 				return err
 			}
 
-			if !val.IsMine() {
-				for _, offset := range c.Perimeter() {
-					check := c.Add(offset)
-					val1, err := m.ValueAt(check)
-					if err != nil {
-						if err != ErrOutOfBounds {
-							return err
-						}
-						continue
-					}
-
-					if val1.IsMine() {
+			if !l.Value().IsMine() && l.Value() != Safe {
+				for _, loc := range m.Perimeter(l) {
+					if loc.Value().IsMine() {
 						count += 1
 					}
 				}
-
-				err := m.SetValue(c, count)
-				if err != nil {
-					return err
-				}
+				l.setValue(count)
 			}
 		}
 	}
@@ -203,13 +220,31 @@ func (m *Minesweeper) markMines() error {
 	return nil
 }
 
-// Detections returns
-func (m *Minesweeper) Detections() []*Coordinate {
-	// for _, m := range m.ActiveMines {
-	//
-	// }
-	// TODO
-	return nil
+func (m *Minesweeper) MarkMines() {
+	m.markMines()
+}
+
+func (m *Minesweeper) Detections() {
+	m.detections()
+}
+
+// detections returns
+func (m *Minesweeper) detections() {
+	// TODO: Remove safe mines
+	// TODO: Figure out why marking safe takes an additional click after
+	for _, mine := range m.ActiveMines {
+		safe := true
+		for _, l := range m.Perimeter(mine) {
+			if !l.Visited() {
+				safe = false
+				break
+			}
+		}
+		if safe {
+			mine.setValue(Safe)
+			mine.Visit()
+		}
+	}
 }
 
 func (m *Minesweeper) Size() (int, int) {
