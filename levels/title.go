@@ -2,63 +2,62 @@ package levels
 
 import (
 	"context"
+	"log"
 
 	tl "github.com/JoelOtter/termloop"
+	"github.com/ryanbaer/minesweeper/utils"
 )
-
-const (
-	titleFg = tl.ColorBlack
-	titleBg = tl.ColorWhite
-)
-
-var titleContent = []string{
-	"Minesweeper",
-	"Press [Enter] to start",
-}
-
-func TitleLevel(ctx context.Context) MinesweeperLevel {
-	level := &titleLevel{
-		Content:  make([]*tl.Text, 0),
-		ResultCh: make(chan MinesweeperLevel),
-		ctx:      ctx,
-	}
-	for _, str := range titleContent {
-		level.Content = append(level.Content, tl.NewText(0, 0, str, titleFg, titleBg))
-	}
-
-	level.Level = tl.NewBaseLevel(tl.Cell{
-		Bg: titleBg,
-		Fg: titleFg,
-	})
-
-	return level
-}
 
 type titleLevel struct {
-	tl.Level
-	Content  []*tl.Text
-	ResultCh chan MinesweeperLevel
-	ctx      context.Context
+	LevelBase
+	Content []*tl.Text
 }
 
-func (t *titleLevel) Draw(screen *tl.Screen) {
+func (l *titleLevel) Draw(screen *tl.Screen) {
 	w, h := screen.Size()
-	for i, t := range t.Content {
-		t.SetPosition(w/2-len(t.Text())/2, h/2+i)
+	for row, t := range l.Content {
+		t.SetPosition(utils.CenterText(t.Text(), w, h, row))
 		t.Draw(screen)
 	}
 }
 
-func (t *titleLevel) Tick(event tl.Event) {
+func (l *titleLevel) Tick(event tl.Event) {
 	if event.Type == tl.EventKey && event.Key == tl.KeyEnter {
-		t.ResultCh <- MainLevel(t.Context())
+		l.ResultCh <- MainLevel(l.Context())
 	}
 }
 
-func (t *titleLevel) Result() chan MinesweeperLevel {
-	return t.ResultCh
+func (l *titleLevel) Result() chan MinesweeperLevel {
+	return l.ResultCh
 }
 
-func (t *titleLevel) Context() context.Context {
-	return t.ctx
+func (l *titleLevel) Context() context.Context {
+	return l.ctx
+}
+
+func TitleLevel(ctx context.Context) MinesweeperLevel {
+	config, err := ConfigFromCtx(ctx)
+	if err != nil {
+		log.Print("Unable to decode config: ", err)
+		return nil
+	}
+
+	fg, bg := config.FgColor, config.BgColor
+
+	level := &titleLevel{
+		Content: make([]*tl.Text, 0),
+	}
+
+	for _, str := range config.TitleContent {
+		level.Content = append(level.Content, tl.NewText(0, 0, str, fg, bg))
+	}
+
+	level.Level = tl.NewBaseLevel(tl.Cell{
+		Bg: bg,
+		Fg: fg,
+	})
+	level.ResultCh = make(chan MinesweeperLevel)
+	level.ctx = ctx
+
+	return level
 }

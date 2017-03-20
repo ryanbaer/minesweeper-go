@@ -7,13 +7,21 @@ import (
 	"github.com/ryanbaer/minesweeper/lib"
 )
 
+const cellBg = tl.ColorWhite
+const cellFg = tl.ColorBlack
+
+// const cellBlank = '░'
+// const cellHidden = '▓'
+const cellHidden = '░'
+
 type Board struct {
 	x      int
 	y      int
 	width  int
 	height int
-	Cells  [][]*BoardCell
-	ms     *lib.Minesweeper
+	cells  [][]*tl.Cell
+	shown  bool
+	*lib.Minesweeper
 }
 
 func NewBoard(width, height, mines int) (*Board, error) {
@@ -23,30 +31,30 @@ func NewBoard(width, height, mines int) (*Board, error) {
 	}
 
 	w1, h1 := ms.Size()
-	cells := make([][]*BoardCell, h1)
+	cells := make([][]*tl.Cell, h1)
 
 	for i := 0; i < h1; i++ {
-		row := make([]*BoardCell, w1)
+		row := make([]*tl.Cell, w1)
 		for j := 0; j < w1; j++ {
-			row[j] = NewBoardCell(0, 0, '░', cellFg, cellBg)
-			// level.AddEntity(row[j])
+			row[j] = &tl.Cell{Fg: cellFg, Bg: cellBg}
 		}
+
 		cells[i] = row
 	}
 
 	board := &Board{
-		Cells:  cells,
-		ms:     ms,
+		cells:       cells,
+		Minesweeper: ms,
+		// ms:     ms,
 		width:  width,
 		height: height,
 	}
-	// level.AddEntity(board)
 
 	return board, nil
 }
 
 // func (b *Board) Explode() {
-// 	w, h := b.ms.Size()
+// 	w, h := b.Size()
 // 	for i := 0; i < h; i++ {
 // 		for j := 0; j < w; j++ {
 //
@@ -54,50 +62,61 @@ func NewBoard(width, height, mines int) (*Board, error) {
 // 	}
 // }
 
-func (b *Board) Click(tx, ty int) bool {
+const (
+	_ = iota
+	GameStateActive
+	GameStateWon
+	GameStateLost
+)
+
+type GameState int
+
+func (b *Board) ToggleSolution() bool {
+	b.shown = !b.shown
+	return b.shown
+}
+
+func (b *Board) Click(tx, ty int) GameState {
 	var (
 		exploded bool
 	)
+	// log.Printf("Click: %d, %d\nRect: (%d, %d) (%d, %d)", tx, ty, b.x, b.y, b.x+b.width, b.y+b.height)
 	if tx >= b.x && tx < b.x+b.width && ty >= b.y && ty < b.y+b.height {
+		// log.Printf("Click: %d, %d in bounds", tx, ty)
 		x, y := tx-b.x, ty-b.y
-
-		// val, err := b.ms.ValueAt(&lib.Coordinate{x, y})
-		// if err != nil {
-		// 	log.Print("Error retrieving value", err)
-		// 	return exploded
-		// }
-
-		// if val.IsMine() {
-		// 	exploded = true
-		// 	b.Cells[y][x].SetColor(tl.ColorRed)
-		// 	// point := lib.Coordinate{X: x, Y: y}
-		// 	// coords := point.RealPerimeter()
-		// 	// for _, c := range coords {
-		// 	// 	if b.ms.InBounds(c) {
-		// 	// 		b.Cells[c.Y][c.X].SetColor(tl.ColorRed)
-		// 	// 	}
-		// 	// }
-		// }
-
-		value, err := b.ms.Visit(&lib.Coordinate{x, y})
+		b.cells[y][x].Bg = cellBg
+		value, err := b.Visit(&lib.Coordinate{x, y})
 		if err != nil {
 			log.Print(err)
-			return false
+			return -1
 		}
 
 		exploded = value.IsMine()
 
-		// b.Cells[y][x].SetContent(val.Display())
-	}
-	b.ms.Detections()
-	b.ms.MarkMines()
+		if exploded {
+			return GameStateLost
+		}
 
-	return exploded
+		if won := b.Detections(); won {
+			return GameStateWon
+		}
+		b.MarkMines()
+	}
+
+	return GameStateActive
 }
+
+// func (b *Board) Press(tx, ty int) {
+//
+// 	if tx >= b.x && tx < b.x+b.width && ty >= b.y && ty < b.y+b.height {
+// 		x, y := tx-b.x, ty-b.y
+// 		b.cells[y][x].Bg = tl.ColorBlue
+// 	}
+// }
 
 func (b *Board) Draw(s *tl.Screen) {
 	w, h := s.Size()
-	w1, h1 := b.ms.Size()
+	w1, h1 := b.Size()
 	b.x = (w/2 - w1/2)
 	b.y = (h/2 - h1/2)
 
@@ -107,22 +126,28 @@ func (b *Board) Draw(s *tl.Screen) {
 			x := b.x + j
 			y := b.y + i
 
-			loc, err := b.ms.Location(&lib.Coordinate{j, i})
+			loc, err := b.Location(&lib.Coordinate{j, i})
 			if err != nil {
 				log.Print(err)
 				continue
 			}
 
-			if loc.Visited() {
-				value = loc.Value().Display()
-			} else {
-				value = '░'
-			}
+			value = loc.Value().Display()
 
-			s.RenderCell(x, y, &tl.Cell{Bg: tl.ColorWhite, Fg: tl.ColorBlack, Ch: value})
-			// cell := b.Cells[i][j]
-			// cell.SetPosition(x, y)
-			// cell.Draw(s)
+			if !b.shown && !loc.Visited() {
+				value = cellHidden
+			}
+			// } else {
+			// 	if loc.Visited() {
+			// 		value = loc.Value().Display()
+			// 	} else {
+			//
+			// 	}
+			// }
+
+			cell := b.cells[i][j]
+			cell.Ch = value
+			s.RenderCell(x, y, cell)
 		}
 	}
 

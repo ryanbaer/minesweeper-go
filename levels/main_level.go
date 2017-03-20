@@ -7,13 +7,22 @@ import (
 
 	tl "github.com/JoelOtter/termloop"
 	"github.com/ryanbaer/minesweeper/components"
+	"github.com/ryanbaer/minesweeper/utils"
 )
 
 type mainLevel struct {
-	tl.Level
-	Board    *components.Board
-	ResultCh chan MinesweeperLevel
-	ctx      context.Context
+	LevelBase
+	Board  *components.Board
+	state  components.GameState
+	Footer *components.Footer
+}
+
+// stateMap maps a `components.GameState` to a `LevelFunc`
+// This provides a data-driven approach to routing to the next level based on the
+// condition of the game
+var stateMap = map[components.GameState]LevelFunc{
+	components.GameStateLost: LoseLevel,
+	components.GameStateWon:  WinLevel,
 }
 
 func (t *mainLevel) Context() context.Context {
@@ -22,20 +31,57 @@ func (t *mainLevel) Context() context.Context {
 
 func (t *mainLevel) Draw(s *tl.Screen) {
 	t.Board.Draw(s)
+	t.Footer.Draw(s)
+}
+
+func (t *mainLevel) SetState(state components.GameState) {
+	t.state = state
+	if !t.GameActive() {
+		if t.GameWon() {
+			t.Footer.Prepend("Press [enter] to continue")
+		} else {
+			t.Footer.SetContent([]string{
+				"You exploded!",
+				"Examine your mistake and press [enter] to continue",
+			})
+			t.Board.ToggleSolution()
+		}
+	}
+
 }
 
 func (t *mainLevel) Tick(event tl.Event) {
-	// t.Board.Tick(event)
-	// if event.Type == tl.EventKey && event.Key == tl.KeyEnter {
-	// 	t.ResultCh <- nil
-	// }
-	if event.Type == tl.EventMouse && event.Key == tl.MouseRelease {
-		exploded := t.Board.Click(event.MouseX, event.MouseY)
-		if exploded {
-			fmt.Println("Exploded!")
+	if utils.MouseUp(event) {
+		if t.state == components.GameStateActive {
+			result := t.Board.Click(event.MouseX, event.MouseY)
+			t.Footer.UpdateItem(0, fmt.Sprintf("Mines Remaining: %d", t.Board.Remaining()))
+			t.SetState(result)
+		}
+	} else if utils.EnterPress(event) {
+		if !t.GameActive() {
+			t.Footer.Append("Game inactive and enter pressed")
+			next, ok := stateMap[t.state]
+			if !ok {
+				t.Footer.Append(fmt.Sprintf("Error: Unable to find next state for state: %d", t.state))
+				return
+			}
+			t.ResultCh <- next(t.Context())
 		}
 
 	}
+
+}
+
+func (l *mainLevel) GameLost() bool {
+	return l.state == components.GameStateLost
+}
+
+func (l *mainLevel) GameWon() bool {
+	return l.state == components.GameStateWon
+}
+
+func (l *mainLevel) GameActive() bool {
+	return l.state == components.GameStateActive
 }
 
 func (m *mainLevel) Result() chan MinesweeperLevel {
@@ -49,13 +95,17 @@ func MainLevel(ctx context.Context) MinesweeperLevel {
 		return nil
 	}
 
-	ml := &mainLevel{
-		Level: tl.NewBaseLevel(tl.Cell{
-			Fg: tl.ColorBlack,
-			Bg: tl.ColorWhite,
-		}),
-		ResultCh: make(chan MinesweeperLevel),
+	fg, bg := config.FgColor, config.BgColor
+
+	level := &mainLevel{
+		state: components.GameStateActive,
 	}
+	level.Level = tl.NewBaseLevel(tl.Cell{
+		Fg: fg,
+		Bg: bg,
+	})
+	level.ResultCh = make(chan MinesweeperLevel)
+	level.ctx = ctx
 
 	board, err := components.NewBoard(config.Width, config.Height, config.Mines)
 	if err != nil {
@@ -63,7 +113,16 @@ func MainLevel(ctx context.Context) MinesweeperLevel {
 		return nil
 	}
 
-	ml.Board = board
+	level.Board = board
 
-	return ml
+	foot := []string{
+		fmt.Sprintf("Mines Remaining: %d", board.Remaining()),
+		"",
+		"Click on a point in the grid to begin",
+		QuitMessage,
+	}
+
+	level.Footer = components.NewFooter(foot, fg, bg, 5)
+
+	return level
 }

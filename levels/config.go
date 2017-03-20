@@ -3,16 +3,12 @@ package levels
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	tl "github.com/JoelOtter/termloop"
+	"github.com/ryanbaer/minesweeper/lib"
 )
 
-type MinesweeperLevel interface {
-	tl.Level
-	Result() chan MinesweeperLevel
-	Context() context.Context
-}
+const QuitMessage = "Press [ctrl +c] to quit at anytime"
 
 type Config struct {
 	Height       int
@@ -21,12 +17,26 @@ type Config struct {
 	TitleContent []string
 	WinContent   []string
 	LoseContent  []string
-	QuitMessage  string
+	FgColor      tl.Attr
+	BgColor      tl.Attr
 }
 
 const CtxConfig = "config"
 
 var ErrConfig = errors.New("Unable to decode config")
+
+func ValidateConfig(c *Config) error {
+	if c.Width < lib.MinWidth || c.Height < lib.MinHeight {
+		return lib.ErrInvalidDimensions
+	}
+
+	maxMines := c.Width*c.Height - 1
+	if c.Mines > maxMines {
+		return lib.ErrTooManyMines
+	}
+
+	return nil
+}
 
 func ConfigFromCtx(ctx context.Context) (*Config, error) {
 	var (
@@ -39,28 +49,4 @@ func ConfigFromCtx(ctx context.Context) (*Config, error) {
 	}
 
 	return config, nil
-}
-
-func StartGame(c *Config) {
-	ctx := context.WithValue(context.Background(), CtxConfig, c)
-
-	g := tl.NewGame()
-
-	go func() {
-		var cur = TitleLevel(ctx)
-
-		for {
-			g.Screen().SetLevel(cur)
-			ch := cur.Result()
-			next := <-ch
-			if next == nil {
-				fmt.Println("Received nil level, breaking")
-				break
-			}
-
-			cur = next
-		}
-	}()
-
-	g.Start()
 }
