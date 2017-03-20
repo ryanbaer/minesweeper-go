@@ -1,4 +1,4 @@
-package main
+package lib
 
 import "errors"
 
@@ -27,6 +27,16 @@ func (c *Coordinate) Perimeter() []*Coordinate {
 		&Coordinate{1, -1},  // Lower Left
 		&Coordinate{0, -1},  // Left
 	}
+}
+
+func (c *Coordinate) RealPerimeter() []*Coordinate {
+	p := c.Perimeter()
+	coords := make([]*Coordinate, len(p))
+	for i, c1 := range p {
+		coords[i] = c.Add(c1)
+	}
+
+	return coords
 }
 
 var Perimeter = []Coordinate{}
