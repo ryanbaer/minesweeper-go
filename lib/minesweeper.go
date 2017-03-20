@@ -251,16 +251,9 @@ func findLocation(l *Location, slice []*Location) int {
 }
 
 func removeLocation(idx int, slice []*Location) []*Location {
-	// log.Printf("slice before: %+v", slice)
-	// log.Printf("Copy to slice[%d:] from slice[%d:]", idx, idx+1)
 	copy(slice[idx:], slice[idx+1:])
-
-	// log.Printf("slice[%d] = nil", len(slice)-1)
 	slice[len(slice)-1] = nil // or the zero value of T
-
-	// log.Printf("slice = slice[:%d]", len(slice)-1)
 	slice = slice[:len(slice)-1]
-	// log.Printf("slice after: %+v", slice)
 
 	return slice
 }
