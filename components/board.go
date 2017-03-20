@@ -4,7 +4,7 @@ import (
 	"log"
 
 	tl "github.com/JoelOtter/termloop"
-	"github.com/ryanbaer/minesweeper/lib"
+	"github.com/ryanbaer/minesweeper-go/lib"
 )
 
 const cellBg = tl.ColorWhite

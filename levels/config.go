@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	tl "github.com/JoelOtter/termloop"
-	"github.com/ryanbaer/minesweeper/lib"
+	"github.com/ryanbaer/minesweeper-go/lib"
 )
 
 const QuitMessage = "Press [ctrl +c] to quit at anytime"

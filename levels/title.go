@@ -5,7 +5,7 @@ import (
 	"log"
 
 	tl "github.com/JoelOtter/termloop"
-	"github.com/ryanbaer/minesweeper/utils"
+	"github.com/ryanbaer/minesweeper-go/utils"
 )
 
 type titleLevel struct {

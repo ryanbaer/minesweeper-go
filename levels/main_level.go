@@ -6,8 +6,8 @@ import (
 	"log"
 
 	tl "github.com/JoelOtter/termloop"
-	"github.com/ryanbaer/minesweeper/components"
-	"github.com/ryanbaer/minesweeper/utils"
+	"github.com/ryanbaer/minesweeper-go/components"
+	"github.com/ryanbaer/minesweeper-go/utils"
 )
 
 type mainLevel struct {

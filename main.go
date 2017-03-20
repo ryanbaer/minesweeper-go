@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	tl "github.com/JoelOtter/termloop"
-	"github.com/ryanbaer/minesweeper/levels"
+	"github.com/ryanbaer/minesweeper-go/levels"
 )
 
 const (
