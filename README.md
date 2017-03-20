@@ -33,7 +33,6 @@ $ minesweeper
 	- Review what really needs to be public / private
 - Remove win & lose levels in favor of simple "Press [enter] to play again" on main level
 - Investigate high CPU on macOS
-  - Other Termloop games seemed to spin up CPU as well
 
 ### Troubleshooting
 Feel free to open a ticket if you run into any issues
