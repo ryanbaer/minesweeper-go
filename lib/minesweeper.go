@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"os"
 	"time"
 )
 
@@ -16,17 +15,17 @@ func init() {
 
 // DEBUG: Write to logfile
 func init() {
-	logfile := "minesweeper.log"
-	if _, err := os.Stat(logfile); !os.IsNotExist(err) {
-		os.Remove(logfile)
-	}
-
-	f, err := os.Create(logfile)
-	if err == nil {
-		log.SetOutput(f)
-	} else {
-		log.Print("Unable to write to log file")
-	}
+	// logfile := "minesweeper.log"
+	// if _, err := os.Stat(logfile); !os.IsNotExist(err) {
+	// 	os.Remove(logfile)
+	// }
+	//
+	// f, err := os.Create(logfile)
+	// if err == nil {
+	// 	log.SetOutput(f)
+	// } else {
+	// 	log.Print("Unable to write to log file")
+	// }
 }
 
 const MinWidth = 2

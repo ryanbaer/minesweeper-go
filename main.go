@@ -68,10 +68,21 @@ func main() {
 			"Minesweeper",
 			"Press [enter] to start",
 		},
-		WinContent:  []string{"Congratulations!!", "A winner is you!", "Press [enter] to play again", levels.QuitMessage},
-		LoseContent: []string{"Better luck next time!", "Press [enter] to try again", levels.QuitMessage},
-		FgColor:     tl.ColorBlack,
-		BgColor:     tl.ColorWhite,
+		WinContent: []string{
+			"Congratulations!!",
+			"A winner is you!",
+			"",
+			"Press [enter] to play again",
+			levels.QuitMessage,
+		},
+		LoseContent: []string{
+			"Better luck next time!",
+			"",
+			"Press [enter] to try again",
+			levels.QuitMessage,
+		},
+		FgColor: tl.ColorBlack,
+		BgColor: tl.ColorWhite,
 	})
 	if err != nil {
 		log.Fatal(err)

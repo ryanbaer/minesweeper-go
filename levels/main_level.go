@@ -38,11 +38,18 @@ func (t *mainLevel) SetState(state components.GameState) {
 	t.state = state
 	if !t.GameActive() {
 		if t.GameWon() {
-			t.Footer.Prepend("Press [enter] to continue")
+			t.Footer.SetContent([]string{
+				"All mines cleared!",
+				"Press [enter] to continue",
+				"",
+				fmt.Sprintf("Mines Remaining: %d", t.Board.Remaining()),
+			})
 		} else {
 			t.Footer.SetContent([]string{
 				"You exploded!",
 				"Examine your mistake and press [enter] to continue",
+				"",
+				fmt.Sprintf("Mines Remaining: %d", t.Board.Remaining()),
 			})
 			t.Board.ToggleSolution()
 		}
@@ -59,7 +66,6 @@ func (t *mainLevel) Tick(event tl.Event) {
 		}
 	} else if utils.EnterPress(event) {
 		if !t.GameActive() {
-			t.Footer.Append("Game inactive and enter pressed")
 			next, ok := stateMap[t.state]
 			if !ok {
 				t.Footer.Append(fmt.Sprintf("Error: Unable to find next state for state: %d", t.state))

@@ -1,36 +1,5 @@
 package levels
 
-// import (
-// 	"context"
-// 	"log"
-//
-// 	// tl "github.com/JoelOtter/termloop"
-// 	"github.com/ryanbaer/minesweeper/components"
-// )
-//
-// type winLevel struct {
-// 	LevelBase
-// 	Board *components.Board
-// }
-//
-// func (w *winLevel) Context() context.Context {
-// 	return w.ctx
-// }
-//
-// func (w *winLevel) Result() chan MinesweeperLevel {
-// 	return w.ResultCh
-// }
-//
-// func WinLevel(ctx context.Context) *winLevel {
-// 	config, err := ConfigFromCtx(ctx)
-// 	if err != nil {
-// 		log.Print("Unable to decode config: ", err)
-// 		return nil
-// 	}
-//
-// 	return &winLevel{}
-// }
-
 import (
 	"context"
 	"log"
