@@ -15,6 +15,7 @@ func StartGame(c *Config) error {
 	ctx := context.WithValue(context.Background(), CtxConfig, c)
 
 	g := tl.NewGame()
+	g.Screen().SetFps(60.0)
 
 	go func() {
 		var cur = TitleLevel(ctx)

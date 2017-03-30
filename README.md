@@ -14,6 +14,7 @@ After implementing the logic of generating a Minesweeper grid, I decided to just
 
 ### Usage
 **Disclaimer**: Developed and tested solely on macOS. There's currently no guarantee of proper gameplay elsewhere
+**Update**: Definitely looks horrible on Windows10 at the moment
 ```
 $ go install github.com/ryanbaer/minesweeper-go
 
@@ -25,14 +26,14 @@ $ minesweeper
 ```
 
 ### Roadmap
-- Possibly make squares bigger (maybe by scaling to the dimensions of the screen)
-- Any bug fixes
-- Clean up code
+[] Possibly make squares bigger (maybe by scaling to the dimensions of the screen)
+[] Any bug fixes
+[] Clean up code
   - Could use less config & more context for passing data through
 	- Comment all methods
 	- Review what really needs to be public / private
-- Remove win & lose levels in favor of simple "Press [enter] to play again" on main level
-- Investigate high CPU on macOS
+[]  Remove win & lose levels in favor of simple "Press [enter] to play again" on main level
+[x] Investigate high CPU on macOS
 
 ### Troubleshooting
 Feel free to open a ticket if you run into any issues
