@@ -128,7 +128,7 @@ func MainLevel(ctx context.Context) MinesweeperLevel {
 		QuitMessage,
 	}
 
-	level.Footer = components.NewFooter(foot, fg, bg, 5)
+	level.Footer = components.NewFooter(foot, fg, bg, 1)
 
 	return level
 }
