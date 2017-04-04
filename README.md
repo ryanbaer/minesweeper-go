@@ -26,14 +26,15 @@ $ minesweeper
 ```
 
 ### Roadmap
-[] Possibly make squares bigger (maybe by scaling to the dimensions of the screen)
-[] Any bug fixes
-[] Clean up code
+
+- [ ] Possibly make squares bigger (maybe by scaling to the dimensions of the screen)
+- [ ] Any bug fixes
+- [ ] Clean up code
   - Could use less config & more context for passing data through
-	- Comment all methods
-	- Review what really needs to be public / private
-[]  Remove win & lose levels in favor of simple "Press [enter] to play again" on main level
-[x] Investigate high CPU on macOS
+    - Comment all methods
+    - Review what really needs to be public / private
+- [ ] Remove win & lose levels in favor of simple "Press [enter] to play again" on main level
+- [x] Investigate high CPU on macOS (Thanks [@mrcrilly](https://github.com/mrcrilly) for pointing out the very high default FPS in TermLoop)
 
 ### Troubleshooting
 Feel free to open a ticket if you run into any issues
