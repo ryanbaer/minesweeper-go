@@ -18,11 +18,11 @@ After implementing the logic of generating a Minesweeper grid, I decided to just
 ```
 $ go install github.com/ryanbaer/minesweeper-go
 
-$ minesweeper -help
+$ minesweeper-go -help
 	Usage: minesweeper <width> <height> <# of mines>
 	Default: minesweeper 20 10 10
 
-$ minesweeper
+$ minesweeper-go
 ```
 
 ### Roadmap
@@ -37,7 +37,7 @@ $ minesweeper
 - [x] Investigate high CPU on macOS (Thanks [@mrcrilly](https://github.com/mrcrilly) for pointing out the very high default FPS in TermLoop)
 
 ### Troubleshooting
-Feel free to open a ticket if you run into any issues
+Feel free to open an issue if you run into any issues
 
 
 ### License
