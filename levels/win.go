@@ -54,6 +54,7 @@ func WinLevel(ctx context.Context) MinesweeperLevel {
 	level.Level = tl.NewBaseLevel(tl.Cell{
 		Bg: bg,
 		Fg: fg,
+		Ch: backgroundChar,
 	})
 	level.ResultCh = make(chan MinesweeperLevel)
 	level.ctx = ctx

@@ -6,6 +6,8 @@ import (
 	tl "github.com/JoelOtter/termloop"
 )
 
+const backgroundChar = ' '
+
 type LevelBase struct {
 	tl.Level
 	ResultCh chan MinesweeperLevel
