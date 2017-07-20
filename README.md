@@ -13,8 +13,6 @@ After implementing the logic of generating a Minesweeper grid, I decided to just
 
 
 ### Usage
-**Disclaimer**: Developed and tested solely on macOS. There's currently no guarantee of proper gameplay elsewhere
-**Update**: Definitely looks horrible on Windows10 at the moment
 ```
 $ go install github.com/ryanbaer/minesweeper-go
 
@@ -25,6 +23,9 @@ $ minesweeper-go -help
 $ minesweeper-go
 ```
 
+**Support**
+This project was developed on macOS, and has been tested on Windows as well.
+
 ### Roadmap
 
 - [ ] Possibly make squares bigger (maybe by scaling to the dimensions of the screen)
@@ -34,6 +35,7 @@ $ minesweeper-go
     - Comment all methods
     - Review what really needs to be public / private
 - [ ] Remove win & lose levels in favor of simple "Press [enter] to play again" on main level
+- [x] Fix ugly appearance from unrendered unicode on Windows command prompt
 - [x] Investigate high CPU on macOS (Thanks [@mrcrilly](https://github.com/mrcrilly) for pointing out the very high default FPS in TermLoop)
 
 ### Troubleshooting

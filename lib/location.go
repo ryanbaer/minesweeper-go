@@ -1,6 +1,7 @@
 package lib
 
 import "fmt"
+import "runtime"
 
 type Location struct {
 	*Coordinate
@@ -47,7 +48,12 @@ func (m MSValue) Display() rune {
 		// return '░'
 		return ' '
 	case Safe:
-		return '✓'
+        if runtime.GOOS == "windows" {
+            return 'M'
+        }
+		
+        return '✓'
+        
 	default:
 		return rune(fmt.Sprintf("%d", m)[0])
 	}
